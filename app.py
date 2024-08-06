@@ -69,22 +69,22 @@ def evaluar_distribuciones(data):
         "normal": {"chi2": p_chi2_norm, "ks": p_ks_norm},
     }
 
-    print("Resultados de las pruebas:")
+    resultado_final = "Resultados de las pruebas:\n"
     for dist, res in resultados.items():
-        print(f"Distribución {dist.capitalize()}:")
-        print(f"  Chi-cuadrado p-valor: {res['chi2']}")
-        print(f"  KS p-valor: {res['ks']}")
+        resultado_final += f"Distribución {dist.capitalize()}:\n"
+        resultado_final += f"  Chi-cuadrado p-valor: {res['chi2']}\n"
+        resultado_final += f"  KS p-valor: {res['ks']}\n"
 
     if resultados["uniforme"]["chi2"] > 0.05 and resultados["uniforme"]["ks"] > 0.05:
-        return "uniforme"
+        return "uniforme", resultado_final
     elif resultados["normal"]["chi2"] > 0.05 and resultados["normal"]["ks"] > 0.05:
-        return "normal"
+        return "normal", resultado_final
     else:
-        return "ninguna"
+        return "ninguna", resultado_final
 
 
 def generar_archivo(distribucion, tamano, archivo):
-    if distribucion == "uniforme":
+    if distribucion == "uniform":
         data = np.random.uniform(0, 1, tamano)
     elif distribucion == "normal":
         data = np.random.normal(0, 1, tamano)
@@ -94,30 +94,60 @@ def generar_archivo(distribucion, tamano, archivo):
         writer.writerow(data)
 
 
-if __name__ == "__main__":
-    import argparse
+def seleccionar_archivo():
+    archivo = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
+    if archivo:
+        data = leer_archivo(archivo)
+        resultado, detalles = evaluar_distribuciones(data)
+        messagebox.showinfo(
+            "Resultado",
+            f"El conjunto de números se asemeja más a una distribución {resultado}.\n\n{detalles}",
+        )
 
-    parser = argparse.ArgumentParser(
-        description="Prueba de distribuciones para un conjunto de números."
-    )
-    parser.add_argument("archivo", type=str, help="Ruta del archivo de entrada")
-    parser.add_argument(
-        "--generar", type=str, help='Generar archivo: "uniforme" o "normal"'
-    )
-    parser.add_argument(
-        "--tamano", type=int, help="Tamaño del conjunto de datos a generar"
-    )
-    args = parser.parse_args()
 
-    if args.generar:
-        if args.generar in ["uniforme", "normal"] and args.tamano:
-            generar_archivo(args.generar, args.tamano, args.archivo)
-            print(f"Archivo generado: {args.archivo}")
-        else:
-            print(
-                "Debe especificar el tipo de distribución ('uniform' o 'normal') y el tamaño del conjunto de datos."
-            )
-    else:
-        data = leer_archivo(args.archivo)
-        resultado = evaluar_distribuciones(data)
-        print(f"El conjunto de números se asemeja más a una distribución {resultado}.")
+def generar_datos():
+    distribucion = distribucion_var.get()
+    tamano = int(tamano_var.get())
+    archivo = filedialog.asksaveasfilename(
+        defaultextension=".txt", filetypes=[("Text files", "*.txt")]
+    )
+    if archivo:
+        generar_archivo(distribucion, tamano, archivo)
+        messagebox.showinfo("Archivo Generado", f"Archivo generado: {archivo}")
+
+
+# Crear la ventana principal
+root = tk.Tk()
+root.title("Análisis de Distribuciones")
+
+# Crear widgets
+label1 = tk.Label(root, text="Seleccione un archivo .txt para analizar:")
+label1.pack(pady=10)
+boton_seleccionar = tk.Button(
+    root, text="Seleccionar Archivo", command=seleccionar_archivo
+)
+boton_seleccionar.pack(pady=5)
+
+label2 = tk.Label(root, text="Generar archivo con datos distribuidos:")
+label2.pack(pady=10)
+distribucion_var = tk.StringVar(value="uniform")
+radio_uniforme = tk.Radiobutton(
+    root, text="Uniforme", variable=distribucion_var, value="uniform"
+)
+radio_normal = tk.Radiobutton(
+    root, text="Normal", variable=distribucion_var, value="normal"
+)
+radio_uniforme.pack()
+radio_normal.pack()
+
+tamano_var = tk.StringVar(value="1000")
+label_tamano = tk.Label(root, text="Tamaño del conjunto de datos:")
+label_tamano.pack(pady=5)
+entry_tamano = tk.Entry(root, textvariable=tamano_var)
+entry_tamano.pack(pady=5)
+
+boton_generar = tk.Button(root, text="Generar Archivo", command=generar_datos)
+boton_generar.pack(pady=10)
+
+# Iniciar la aplicación
+root.mainloop()
