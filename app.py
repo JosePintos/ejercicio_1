@@ -26,7 +26,7 @@ def prueba_chi_cuadrado(data, dist_name, params):
     expected_freq = dist.cdf(bin_edges[1:]) - dist.cdf(bin_edges[:-1])
     expected_freq *= len(data)
 
-    # Asegurarse de que las sumas coincidan
+    # Para que las sumas de las frecuencias coincidan, si no tira error
     expected_freq *= hist.sum() / expected_freq.sum()
 
     chi2, p_value = stats.chisquare(hist, expected_freq)
@@ -44,11 +44,11 @@ def prueba_ks(data, dist_name, params):
 
 
 def ajustar_distribuciones(data):
-    # Ajustar distribución uniforme
+    # Parametros para dist uniforme
     min_val, max_val = min(data), max(data)
     params_uniform = (min_val, max_val - min_val)
 
-    # Ajustar distribución normal
+    # Parametros para dist normal
     mean, std = np.mean(data), np.std(data)
     params_norm = (mean, std)
 
@@ -83,11 +83,11 @@ def evaluar_distribuciones(data):
         return "ninguna", resultado_final
 
 
-def generar_archivo(distribucion, tamano, archivo):
+def generar_archivo(distribucion, size, archivo):
     if distribucion == "uniform":
-        data = np.random.uniform(0, 1, tamano)
+        data = np.random.uniform(0, 1, size)
     elif distribucion == "normal":
-        data = np.random.normal(0, 1, tamano)
+        data = np.random.normal(0, 1, size)
 
     with open(archivo, "w", newline="") as f:
         writer = csv.writer(f)
@@ -107,12 +107,12 @@ def seleccionar_archivo():
 
 def generar_datos():
     distribucion = distribucion_var.get()
-    tamano = int(tamano_var.get())
+    size = int(size_var.get())
     archivo = filedialog.asksaveasfilename(
         defaultextension=".txt", filetypes=[("Text files", "*.txt")]
     )
     if archivo:
-        generar_archivo(distribucion, tamano, archivo)
+        generar_archivo(distribucion, size, archivo)
         messagebox.showinfo("Archivo Generado", f"Archivo generado: {archivo}")
 
 
@@ -140,14 +140,14 @@ radio_normal = tk.Radiobutton(
 radio_uniforme.pack()
 radio_normal.pack()
 
-tamano_var = tk.StringVar(value="1000")
-label_tamano = tk.Label(root, text="Tamaño del conjunto de datos:")
-label_tamano.pack(pady=5)
-entry_tamano = tk.Entry(root, textvariable=tamano_var)
-entry_tamano.pack(pady=5)
+size_var = tk.StringVar(value="1000")
+label_size = tk.Label(root, text="Tamaño del conjunto de datos:")
+label_size.pack(pady=5)
+entry_size = tk.Entry(root, textvariable=size_var)
+entry_size.pack(pady=5)
 
 boton_generar = tk.Button(root, text="Generar Archivo", command=generar_datos)
 boton_generar.pack(pady=10)
 
-# Iniciar la aplicación
+# Iniciar simulador
 root.mainloop()
